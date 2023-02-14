@@ -14,13 +14,15 @@ public class NullCheckTest : MonoBehaviour
         Destroy(target);
         Debug.Log("target destroyed!");
     }
-    void Start(){
+    IEnumerator Start(){
         Debug.Log("Start begin---");
+        yield return new WaitForSeconds(1);
         Debug.Log("Trying '?'' method:");
         target?.IsAlive();
         Debug.Log("Trying 'is not null' method:");
         if (target is not null) target.IsAlive();
         Debug.Log("Trying regular method:");
         if (target != null) target.IsAlive();
+        yield return null;
     }
 }
