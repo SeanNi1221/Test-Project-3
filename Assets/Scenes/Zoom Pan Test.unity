@@ -6234,7 +6234,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d8906e4cd4123247916253a6c14579f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ZoomSpeed: 1
+  ZoomSpeed: 5
   PanSeedX: 1
   PanSeedY: 1
   _camera: {fileID: 2027380032}
