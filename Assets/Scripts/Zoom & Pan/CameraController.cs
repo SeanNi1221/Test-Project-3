@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.UI;
 public class CameraController : MonoBehaviour
 {
     //To record camera state at a specific moment
@@ -32,7 +32,7 @@ public class CameraController : MonoBehaviour
         }
 
         //The canvas size is determined by ( orgin view size / current view size)
-        public void UpdateBy(Camera camera, CameraState origin) {
+        public void ResizeBy(Camera camera, CameraState origin) {
             var currentViewSize = Mathf.Tan(Mathf.Deg2Rad * camera.fieldOfView/2);
             Scale = origin.viewSize/currentViewSize;
             var expand = Scale - 1;
@@ -43,19 +43,19 @@ public class CameraController : MonoBehaviour
     private static class InputProcessor {
         public static readonly float ScrollWheel = Time.deltaTime *
 # if UNITY_WEBGL
-        250;
+        500;
 # else
-        250;
+        500;
 #endif
         public static readonly float MouseX = Time.deltaTime *
 # if UNITY_WEBGL
-        1;
+        5;
 # else
         5;
 #endif
         public static readonly float MouseY = Time.deltaTime *
 # if UNITY_WEBGL
-        1;
+        5;
 # else
         5;
 #endif
@@ -72,12 +72,13 @@ public class CameraController : MonoBehaviour
     private CameraController.Canvas _canvas;
     //Has the camera been touched during the current frame?
     private bool _isDirty;
-    [SerializeField] private Camera _camera;
     private float _lensShiftX;
     private float _lensShiftY;
-
+    [SerializeField] private Camera _camera;
+    [SerializeField] private Text _debugInfo;
     void OnValidate() {
         if (!_camera) _camera = Camera.main;
+        if (!_debugInfo) _debugInfo = GameObject.Find("Debug").GetComponent<Text>();
     }
 
     void Start() {
@@ -93,6 +94,7 @@ public class CameraController : MonoBehaviour
 
         if (_isDirty) UpdateProjectionMatrix();
         _isDirty = false;
+        PassDebugInfo();
     }
     //Set the current camera state as origin
     internal void SetOrigin() {
@@ -105,14 +107,14 @@ public class CameraController : MonoBehaviour
         if (delta < 0 && _camera.fieldOfView >= _origin.Fov) return;
 
         float newFov = _camera.fieldOfView - delta;
-        _camera.fieldOfView = Mathf.Clamp(newFov, 10, _origin.Fov);
+        _camera.fieldOfView = Mathf.Clamp(newFov, 1, _origin.Fov);
 
         //The scale of the canvas changes with fov, therefore a compensation
         //lens shift is needed after changing the fov to ensure the view center
         //is not changed.
-        float scale0 = _canvas.Scale;
-        _canvas.UpdateBy(_camera, _origin);
-        float compensation = _canvas.Scale/scale0;
+        float previousCanvasScale = _canvas.Scale;
+        _canvas.ResizeBy(_camera, _origin);
+        float compensation = _canvas.Scale/previousCanvasScale;
 
         _lensShiftX *= compensation;
         _lensShiftY *= compensation;
@@ -159,5 +161,11 @@ public class CameraController : MonoBehaviour
         m[0, 2] = _lensShiftX;
         m[1, 2] = _lensShiftY;
         _camera.projectionMatrix = m;
+    }
+    private void PassDebugInfo() {
+        _debugInfo.text =
+            $"Fov:{_camera.fieldOfView.ToString("F2")}\n" +
+            $"Canvas Scale:{_canvas.Scale.ToString("F2")}\n" +
+            $"Lens Shift:{_lensShiftX.ToString("F2")}, {_lensShiftY.ToString("F2")}";
     }
 }
