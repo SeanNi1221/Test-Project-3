@@ -49,13 +49,13 @@ public class CameraController : MonoBehaviour
 #endif
         public static readonly float MouseX = Time.deltaTime *
 # if UNITY_WEBGL
-        5;
+        1;
 # else
         5;
 #endif
         public static readonly float MouseY = Time.deltaTime *
 # if UNITY_WEBGL
-        5;
+        1;
 # else
         5;
 #endif
