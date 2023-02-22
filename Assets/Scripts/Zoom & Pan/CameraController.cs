@@ -7,13 +7,9 @@ public class CameraController : MonoBehaviour
     //To record camera state at a specific moment
     private class CameraState {
         public readonly float Fov;
-        public readonly Matrix4x4 Projection;
-        public readonly Plane[] Frustrum;
         public readonly float viewSize;
         public CameraState(Camera camera) {
             Fov = camera.fieldOfView;
-            Projection = camera.projectionMatrix;
-            Frustrum = GeometryUtility.CalculateFrustumPlanes(camera);
             viewSize = Mathf.Tan(Mathf.Deg2Rad * Fov/2);
         }
     }
@@ -30,11 +26,12 @@ public class CameraController : MonoBehaviour
             _controller = controller;
             Scale = 1;
         }
-
         //The canvas size is determined by ( orgin view size / current view size)
-        public void ResizeBy(Camera camera, CameraState origin) {
-            var currentViewSize = Mathf.Tan(Mathf.Deg2Rad * camera.fieldOfView/2);
-            Scale = origin.viewSize/currentViewSize;
+        public void UpdateScale() {
+            var currentViewSize = Mathf.Tan(
+                Mathf.Deg2Rad * _controller._camera.fieldOfView/2
+            );
+            Scale = _controller._origin.viewSize/currentViewSize;
             var expand = Scale - 1;
             XMin = YMin = -expand;
             XMax = YMax = expand;
@@ -112,9 +109,9 @@ public class CameraController : MonoBehaviour
         //The scale of the canvas changes with fov, therefore a compensation
         //lens shift is needed after changing the fov to ensure the view center
         //is not changed.
-        float previousCanvasScale = _canvas.Scale;
-        _canvas.ResizeBy(_camera, _origin);
-        float compensation = _canvas.Scale/previousCanvasScale;
+        float previousScale = _canvas.Scale;
+        _canvas.UpdateScale();
+        float compensation = _canvas.Scale/previousScale;
 
         _lensShiftX *= compensation;
         _lensShiftY *= compensation;
